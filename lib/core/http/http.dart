@@ -1,18 +1,28 @@
-import 'dart:async';
-import 'dart:convert';
-import 'dart:io' as io;
+import 'package:cookie_jar/cookie_jar.dart';
+import 'package:dio/dio.dart';
+import 'package:dio_cookie_manager/dio_cookie_manager.dart';
+import 'package:flutter_template/core/utils/path.dart';
 
-import 'package:flutter/flutter.dart';
-import 'package:flutter/services.dart';
+class XHttp {
+  XHttp._internal();
 
-// A basic HTTP utility class for handling HTTP requests
+  ///网络请求配置
+  static final Dio dio = Dio(BaseOptions(
+    baseUrl: "https://www.wanandroid.com",
+    connectTimeout: 5000,
+    receiveTimeout: 3000,
+  ));
 
-class HttpUtil {
-  static final ioT.HttpClient _httpClient = io.HttpClient();
+  ///初始化dio
+  static void init() {
+    ///初始化cookie
+    PathUtils.getDocumentsDirPath().then((value) {
+      var cookieJar =
+          PersistCookieJar(storage: FileStorage(value + "/.cookies/"));
+      dio.interceptors.add(CookieManager(cookieJar));
+    });
 
-  static Future<dynamic> get(String url) async {
-    var response = await _httpClient.get(Uri.parse(url));
-    var data = json.decode(response.body);
-    return data;
-  }
-}
+    //添加拦截器
+    dio.interceptors
+        .add(InterceptorsWrapper(onRequest: (RequestOptions options, handler) {
+      print("请�
